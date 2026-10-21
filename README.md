@@ -14,7 +14,7 @@ Copy-Item .env.example .env
 npm run dev
 ```
 
-For production, set `NODE_ENV=production`, use a managed MongoDB replica set, HTTPS, a distinct long random JWT secret, and a comma-separated allowlist in `CLIENT_URL`. Start with `npm start` only after the deployment environment supplies all required values.
+For production, set `NODE_ENV=production`, use a managed MongoDB replica set, HTTPS, and a distinct long random JWT secret. The backend always allows `https://quettabikesclub.com` and `https://www.quettabikesclub.com`; use `ALLOWED_ORIGINS` for any additional comma-separated frontend origins. The legacy `FRONTEND_URL` and `CLIENT_URL` settings are still accepted. Start with `npm start` only after the deployment environment supplies all required values.
 
 ## Environment
 
@@ -25,7 +25,9 @@ For production, set `NODE_ENV=production`, use a managed MongoDB replica set, HT
 | `MONGODB_URI` | Required MongoDB connection URI. |
 | `JWT_SECRET` | Required secret of at least 32 characters; generate it with a password manager. |
 | `JWT_EXPIRES_IN` | Admin bearer-token lifetime, e.g. `15m`. |
-| `CLIENT_URL` | Comma-separated browser origin allowlist for CORS. |
+| `ALLOWED_ORIGINS` | Optional comma-separated additional frontend origins for CORS; use origin only, without a path. The two quettabikesclub.com production origins are included automatically. When set, this is authoritative. |
+| `FRONTEND_URL` | Legacy comma-separated CORS allowlist; used only when `ALLOWED_ORIGINS` is unset. |
+| `CLIENT_URL` | Legacy comma-separated CORS allowlist; used only when `ALLOWED_ORIGINS` is unset. |
 | `DNS_SERVERS` | Optional comma-separated DNS resolvers when a network blocks Node SRV lookups for `mongodb+srv` URIs. |
 | `WHATSAPP_BUSINESS_NUMBER` | Required for checkout; international digits only, no `+` or spaces. |
 | `DELIVERY_CHARGE_PKR` | Non-negative server-side delivery charge. |
@@ -42,7 +44,7 @@ There is deliberately no registration endpoint. Put the three `ADMIN_*` values i
 npm run seed:admin
 ```
 
-The script is idempotent: if that email exists, it changes nothing. Remove `ADMIN_PASSWORD` from deployment secrets after bootstrap if it is not otherwise needed.
+The script is idempotent: if that email exists, it changes nothing by default. If an existing admin needs a password reset, set `ADMIN_NAME`, `ADMIN_EMAIL`, and a new `ADMIN_PASSWORD` in the deployment environment, then explicitly run `npm run seed:admin -- --reset-password` from the backend directory (Render Shell). The reset uses the existing admin account with that email and hashes the password using the normal model hook. Remove `ADMIN_PASSWORD` from deployment secrets after bootstrap/reset if it is not otherwise needed.
 
 ## Authentication and client security
 
